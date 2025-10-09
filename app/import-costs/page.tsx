@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { ImportCost } from '@/lib/types'
 import { Button } from '@/components/ui/Button'
-import { Navigation } from '@/components/Navigation'
 import { DollarSign, Plus, Search, Filter } from 'lucide-react'
 import Link from 'next/link'
 
@@ -52,8 +51,6 @@ export default function ImportCostsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
-
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">

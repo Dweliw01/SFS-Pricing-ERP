@@ -6,7 +6,6 @@ import { Vendor } from '@/lib/types'
 import { Building2, Plus, Search, Edit, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
-import { Navigation } from '@/components/Navigation'
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([])
@@ -49,9 +48,6 @@ export default function VendorsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <Navigation />
-
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

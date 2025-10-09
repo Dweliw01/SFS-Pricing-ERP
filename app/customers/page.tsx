@@ -6,7 +6,6 @@ import { Customer } from '@/lib/types'
 import { Users, Plus, Search, Edit, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
-import { Navigation } from '@/components/Navigation'
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -49,8 +48,6 @@ export default function CustomersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
-
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">

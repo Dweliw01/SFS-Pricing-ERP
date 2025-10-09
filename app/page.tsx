@@ -7,7 +7,6 @@ import { Product } from '@/lib/types'
 import { Package, Plus, Search, Filter, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { FilterModal } from '@/components/FilterModal'
-import { Navigation } from '@/components/Navigation'
 
 type SortField = 'master_list_number' | 'item_number' | 'brand' | 'status' | 'product_type'
 type SortDirection = 'asc' | 'desc'
@@ -114,9 +113,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <Navigation />
-
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
