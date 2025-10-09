@@ -152,12 +152,21 @@ export default function EditProductPage() {
         moq: formData.moq ? parseInt(formData.moq) : null
       }
 
-      const { error } = await supabase
+      const { data: updatedData, error } = await supabase
         .from('products')
         .update(productData)
         .eq('id', params.id)
+        .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        throw new Error(error.message || 'Failed to update product')
+      }
 
       router.push(`/products/${params.id}`)
     } catch (error: any) {
