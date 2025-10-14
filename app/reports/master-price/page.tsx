@@ -6,7 +6,7 @@ import { Select } from '@/components/ui/Select'
 import { Input } from '@/components/ui/Input'
 import { ArrowLeft, Download, FileText, Filter, X, Search, FileSpreadsheet } from 'lucide-react'
 import Link from 'next/link'
-import { REPORT_COLUMN_CATEGORIES, getDefaultColumns, COLUMN_PRESETS } from '@/lib/reports/reportColumns'
+import { REPORT_COLUMN_CATEGORIES, getDefaultColumns, COLUMN_PRESETS, getColumnByKey } from '@/lib/reports/reportColumns'
 import { MasterPriceReportRow, ReportFilters } from '@/lib/reports/reportTypes'
 
 export default function MasterPriceReportPage() {
@@ -161,13 +161,62 @@ export default function MasterPriceReportPage() {
   }
 
   // Apply preset
-  const applyPreset = (presetName: keyof typeof COLUMN_PRESETS) => {
+  const applyPreset = (presetName: keyof typeof COLUMN_PRESETS, e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
     setSelectedColumns(COLUMN_PRESETS[presetName])
-    setShowColumnSelector(false)
   }
 
   // Calculate totals
   const totalPages = Math.ceil(totalRecords / pageSize)
+
+  // Helper function to get column label
+  const getColumnLabel = (columnKey: string): string => {
+    const column = getColumnByKey(columnKey)
+    return column ? column.label : columnKey.replace(/_/g, ' ')
+  }
+
+  // Helper function to format cell value
+  const formatCellValue = (value: any, columnKey: string): string => {
+    if (value === null || value === undefined) return '-'
+
+    const column = getColumnByKey(columnKey)
+    if (column?.format) {
+      return column.format(value)
+    }
+
+    return String(value)
+  }
+
+  // Helper function to get header color based on category
+  const getHeaderColor = (columnKey: string): string => {
+    const column = getColumnByKey(columnKey)
+    if (!column) return 'bg-gray-100 text-gray-700'
+
+    const categoryColors: Record<string, string> = {
+      'product_info': 'bg-blue-100 text-blue-800',
+      'vendor_info': 'bg-purple-100 text-purple-800',
+      'physical_specs': 'bg-gray-100 text-gray-700',
+      'container_logistics': 'bg-teal-100 text-teal-800',
+      'customer_info': 'bg-green-100 text-green-800',
+      'vendor_costs_exw': 'bg-orange-100 text-orange-800',
+      'vendor_costs_fob': 'bg-red-100 text-red-800',
+      'vendor_costs_pickup_plant': 'bg-orange-100 text-orange-700',
+      'vendor_costs_pickup_port': 'bg-orange-100 text-orange-700',
+      'vendor_costs_ddp': 'bg-red-100 text-red-700',
+      'factory_fees': 'bg-yellow-100 text-yellow-800',
+      'import_costs': 'bg-indigo-100 text-indigo-800',
+      'customer_pricing_exw': 'bg-emerald-100 text-emerald-800',
+      'customer_pricing_fob': 'bg-green-100 text-green-800',
+      'customer_pricing_dap': 'bg-lime-100 text-lime-800',
+      'customer_pricing_ddp': 'bg-green-100 text-green-700',
+      'margins_profitability': 'bg-pink-100 text-pink-800',
+      'dates_status': 'bg-slate-100 text-slate-700',
+      'notes': 'bg-amber-100 text-amber-800'
+    }
+
+    return categoryColors[column.category] || 'bg-gray-100 text-gray-700'
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -320,16 +369,16 @@ export default function MasterPriceReportPage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Select Columns</h2>
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={() => applyPreset('basic')}>
+                <Button type="button" variant="ghost" size="sm" onClick={(e) => applyPreset('basic', e)}>
                   Basic
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => applyPreset('margins')}>
+                <Button type="button" variant="ghost" size="sm" onClick={(e) => applyPreset('margins', e)}>
                   Margins
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => applyPreset('costs')}>
+                <Button type="button" variant="ghost" size="sm" onClick={(e) => applyPreset('costs', e)}>
                   Costs
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => applyPreset('full')}>
+                <Button type="button" variant="ghost" size="sm" onClick={(e) => applyPreset('full', e)}>
                   All Columns
                 </Button>
               </div>
@@ -417,10 +466,11 @@ export default function MasterPriceReportPage() {
           </div>
         </div>
 
-        {/* Preview Table */}
+        {/* Preview Table - Excel Style */}
         {reportData.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            {/* Table Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">
                 Preview ({reportData.length} records)
               </h2>
@@ -429,36 +479,76 @@ export default function MasterPriceReportPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            {/* Scrollable Table Container */}
+            <div className="overflow-x-auto overflow-y-auto max-h-[600px] border-t border-gray-200">
+              <table className="w-full border-collapse">
+                {/* Sticky Header */}
+                <thead className="sticky top-0 z-10">
                   <tr>
-                    {selectedColumns.slice(0, 10).map(columnKey => (
-                      <th
-                        key={columnKey}
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        {columnKey.replace(/_/g, ' ')}
-                      </th>
-                    ))}
+                    {selectedColumns.map((columnKey, idx) => {
+                      const column = getColumnByKey(columnKey)
+                      const width = column?.width || 120
+                      const isFirstColumn = idx === 0
+                      const headerColor = getHeaderColor(columnKey)
+
+                      return (
+                        <th
+                          key={columnKey}
+                          className={`
+                            px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide
+                            border-r border-b border-gray-300 whitespace-nowrap
+                            ${headerColor}
+                            ${isFirstColumn ? 'sticky left-0 z-20 shadow-sm' : ''}
+                          `}
+                          style={{ minWidth: `${width}px`, maxWidth: `${width}px` }}
+                        >
+                          {getColumnLabel(columnKey)}
+                        </th>
+                      )
+                    })}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {reportData.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
-                      {selectedColumns.slice(0, 10).map(columnKey => (
-                        <td key={columnKey} className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
-                          {String(row[columnKey as keyof MasterPriceReportRow] || '-')}
-                        </td>
-                      ))}
+
+                {/* Table Body */}
+                <tbody className="bg-white">
+                  {reportData.map((row, rowIdx) => (
+                    <tr
+                      key={rowIdx}
+                      className={`
+                        hover:bg-blue-50 transition-colors
+                        ${rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+                      `}
+                    >
+                      {selectedColumns.map((columnKey, colIdx) => {
+                        const column = getColumnByKey(columnKey)
+                        const width = column?.width || 120
+                        const isFirstColumn = colIdx === 0
+                        const value = row[columnKey as keyof MasterPriceReportRow]
+                        const formattedValue = formatCellValue(value, columnKey)
+
+                        return (
+                          <td
+                            key={columnKey}
+                            className={`
+                              px-2 py-1 text-xs text-gray-900 border-r border-b border-gray-200 whitespace-nowrap
+                              ${isFirstColumn ? 'sticky left-0 z-10 font-medium bg-inherit' : ''}
+                            `}
+                            style={{ minWidth: `${width}px`, maxWidth: `${width}px` }}
+                            title={formattedValue}
+                          >
+                            <div className="truncate">{formattedValue}</div>
+                          </td>
+                        )
+                      })}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
+            {/* Pagination Footer */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
                 <Button
                   variant="secondary"
                   size="sm"

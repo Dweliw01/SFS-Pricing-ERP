@@ -14,6 +14,33 @@ export default function ReportsPage() {
     totalVendors: 0,
     averageMargin: 0
   })
+  const [loading, setLoading] = useState(true)
+
+  // Load statistics on mount
+  useEffect(() => {
+    loadStats()
+  }, [])
+
+  const loadStats = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/reports/stats')
+      const result = await response.json()
+
+      if (result.success) {
+        setStats({
+          totalProducts: result.data.totalProducts || 0,
+          totalCustomers: result.data.totalCustomers || 0,
+          totalVendors: result.data.totalVendors || 0,
+          averageMargin: result.data.averageMarginPercent || 0
+        })
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -36,25 +63,25 @@ export default function ReportsPage() {
           <StatCard
             icon={<Package className="h-8 w-8 text-blue-600" />}
             label="Total Products"
-            value={stats.totalProducts}
+            value={loading ? '...' : stats.totalProducts}
             bgColor="bg-blue-50"
           />
           <StatCard
             icon={<TrendingUp className="h-8 w-8 text-green-600" />}
             label="Total Customers"
-            value={stats.totalCustomers}
+            value={loading ? '...' : stats.totalCustomers}
             bgColor="bg-green-50"
           />
           <StatCard
             icon={<DollarSign className="h-8 w-8 text-purple-600" />}
             label="Total Vendors"
-            value={stats.totalVendors}
+            value={loading ? '...' : stats.totalVendors}
             bgColor="bg-purple-50"
           />
           <StatCard
             icon={<FileText className="h-8 w-8 text-orange-600" />}
             label="Avg Margin"
-            value={`${stats.averageMargin.toFixed(1)}%`}
+            value={loading ? '...' : `${stats.averageMargin.toFixed(1)}%`}
             bgColor="bg-orange-50"
           />
         </div>
