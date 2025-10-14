@@ -2,9 +2,48 @@
 // Excel export functionality for master price reports
 
 import * as XLSX from 'xlsx'
-import { format } from 'date-fns'
 import { MasterPriceReportRow, ExportOptions } from './reportTypes'
 import { getColumnByKey } from './reportColumns'
+
+// ============================================================================
+// DATE FORMATTING HELPERS
+// ============================================================================
+
+/**
+ * Format date to YYYY-MM-DD format
+ */
+function formatDate(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+/**
+ * Format date to YYYY-MM-DD HH:mm:ss format
+ */
+function formatDateTime(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
+/**
+ * Format date to YYYY-MM-DD-HHmmss format for filenames
+ */
+function formatDateTimeForFilename(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day}-${hours}${minutes}${seconds}`
+}
 
 // ============================================================================
 // MAIN EXPORT FUNCTIONS
@@ -124,7 +163,7 @@ function generateSummarySheet(data: MasterPriceReportRow[]): XLSX.WorkSheet {
 
   // Create summary data
   const summaryData = [
-    { Metric: 'Report Generated', Value: format(new Date(), 'yyyy-MM-dd HH:mm:ss') },
+    { Metric: 'Report Generated', Value: formatDateTime(new Date()) },
     { Metric: 'Total Records', Value: data.length },
     { Metric: '', Value: '' },
     { Metric: '=== PRODUCTS ===', Value: '' },
@@ -181,7 +220,7 @@ function formatCellValue(value: any, dataType: string): any {
       return value ? 'Yes' : 'No'
 
     case 'date':
-      return value ? format(new Date(value), 'yyyy-MM-dd') : ''
+      return value ? formatDate(new Date(value)) : ''
 
     case 'string':
     default:
@@ -296,7 +335,7 @@ export function downloadExcelFile(
  * Generate filename with timestamp
  */
 export function generateFilename(prefix: string = 'master-price-report'): string {
-  const timestamp = format(new Date(), 'yyyy-MM-dd-HHmmss')
+  const timestamp = formatDateTimeForFilename(new Date())
   return `${prefix}-${timestamp}.xlsx`
 }
 

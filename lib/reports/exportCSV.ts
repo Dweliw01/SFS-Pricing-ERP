@@ -1,9 +1,35 @@
 // lib/reports/exportCSV.ts
 // CSV export functionality for master price reports
 
-import { format } from 'date-fns'
 import { MasterPriceReportRow, ExportOptions } from './reportTypes'
 import { getColumnByKey } from './reportColumns'
+
+// ============================================================================
+// DATE FORMATTING HELPERS
+// ============================================================================
+
+/**
+ * Format date to YYYY-MM-DD format
+ */
+function formatDate(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+/**
+ * Format date to YYYY-MM-DD-HHmmss format for filenames
+ */
+function formatDateTimeForFilename(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day}-${hours}${minutes}${seconds}`
+}
 
 // ============================================================================
 // MAIN EXPORT FUNCTIONS
@@ -75,7 +101,7 @@ function formatCSVValue(value: any, dataType?: string): string {
       return value ? 'Yes' : 'No'
 
     case 'date':
-      return value ? format(new Date(value), 'yyyy-MM-dd') : ''
+      return value ? formatDate(new Date(value)) : ''
 
     case 'string':
     default:
@@ -139,7 +165,7 @@ export function downloadCSVFile(
  * Generate filename with timestamp
  */
 export function generateCSVFilename(prefix: string = 'master-price-report'): string {
-  const timestamp = format(new Date(), 'yyyy-MM-dd-HHmmss')
+  const timestamp = formatDateTimeForFilename(new Date())
   return `${prefix}-${timestamp}.csv`
 }
 
