@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Package, Building2, Users, DollarSign } from 'lucide-react'
+import { Package, Building2, Users, DollarSign, FileText } from 'lucide-react'
 
 export function Navigation() {
   const pathname = usePathname()
@@ -11,7 +11,8 @@ export function Navigation() {
     { href: '/', label: 'Products', icon: Package },
     { href: '/vendors', label: 'Vendors', icon: Building2 },
     { href: '/customers', label: 'Customers', icon: Users },
-    { href: '/import-costs', label: 'Import Costs', icon: DollarSign }
+    { href: '/import-costs', label: 'Import Costs', icon: DollarSign },
+    { href: '/reports', label: 'Reports', icon: FileText }
   ]
 
   return (
