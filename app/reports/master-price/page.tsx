@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { Input } from '@/components/ui/Input'
@@ -10,6 +11,8 @@ import { REPORT_COLUMN_CATEGORIES, getDefaultColumns, COLUMN_PRESETS, getColumnB
 import { MasterPriceReportRow, ReportFilters } from '@/lib/reports/reportTypes'
 
 export default function MasterPriceReportPage() {
+  const searchParams = useSearchParams()
+
   // State
   const [filters, setFilters] = useState<ReportFilters>({
     status: ['C'], // Default to "Current" products
@@ -22,6 +25,7 @@ export default function MasterPriceReportPage() {
   const [showFilters, setShowFilters] = useState(true)
   const [showColumnSelector, setShowColumnSelector] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [reportTitle, setReportTitle] = useState('Master Price Report')
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -32,6 +36,23 @@ export default function MasterPriceReportPage() {
   const [products, setProducts] = useState<any[]>([])
   const [customers, setCustomers] = useState<any[]>([])
   const [vendors, setVendors] = useState<any[]>([])
+
+  // Handle preset from URL on mount
+  useEffect(() => {
+    const preset = searchParams.get('preset')
+    if (preset && preset in COLUMN_PRESETS) {
+      setSelectedColumns(COLUMN_PRESETS[preset as keyof typeof COLUMN_PRESETS])
+
+      // Update report title based on preset
+      const titles: Record<string, string> = {
+        margins: 'Margin Analysis Report',
+        costs: 'Cost Comparison Report',
+        basic: 'Basic Price Report',
+        full: 'Complete Master Price Report'
+      }
+      setReportTitle(titles[preset] || 'Master Price Report')
+    }
+  }, [searchParams])
 
   // Load report data
   const loadReportData = async () => {
@@ -232,7 +253,7 @@ export default function MasterPriceReportPage() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Master Price Report</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{reportTitle}</h1>
                 <p className="text-sm text-gray-600 mt-1">
                   {totalRecords} records • {selectedColumns.length} columns selected
                 </p>
